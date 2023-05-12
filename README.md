@@ -1,6 +1,9 @@
-#Bookingsystem1
+# Bookingsystem1
+
+
 The QR code payment extension implemented in this fork is explained in the video: https://youtu.be/7-IqSIubDHQ 
-and in the webpage www.gulliversoft.com
+and on the webpage www.gulliversoft.com
+
 Feel free to ask me how to integrate this solution in your club.
 
 # ep-3 Bookingsystem
