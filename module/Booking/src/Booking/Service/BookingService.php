@@ -75,6 +75,7 @@ class BookingService extends AbstractService
             $booking->setExtra('reservations', $reservations);
 
             $pricing = $this->squarePricingManager->getFinalPricingInRange($dateTimeStart, $dateTimeEnd, $square, $quantity);
+            error_log("BoookingController Line 78");
 
             if ($pricing) {
                 $squareType = $this->optionManager->need('subject.square.type');
@@ -121,18 +122,29 @@ class BookingService extends AbstractService
                 $this->connection->commit();
                 $transaction = false;
             }
-
+            error_log("BoookingController Line 125, create.single bookig");
             $this->getEventManager()->trigger('create.single', $booking);
 
             return $booking;
 
         } catch (Exception $e) {
             if ($transaction) {
+                error_log("BoookingController Line 132, rollback without bookig");
                 $this->connection->rollback();
             }
 
             throw $e;
         }
+    }
+
+    public function updatePaymentSingle(Booking $booking)
+    {
+
+        $this->bookingManager->save($booking);
+
+        $this->getEventManager()->trigger('create.single', $booking);
+
+        return $booking;
     }
 
     public function cancelSingle(Booking $booking)

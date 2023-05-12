@@ -10,7 +10,7 @@ class EditFormFactory implements FactoryInterface
 
     public function createService(ServiceLocatorInterface $sm)
     {
-        return new EditForm($sm->getServiceLocator()->get('User\Manager\UserManager'));
+        return new EditForm($sm->getServiceLocator()->get('User\Manager\UserManager'),$sm->getServiceLocator()->get('Base\Manager\ConfigManager'));
     }
 
 }

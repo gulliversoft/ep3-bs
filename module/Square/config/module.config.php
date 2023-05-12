@@ -96,7 +96,6 @@ return array(
             'SquareTimeBlockChoice' => 'Square\View\Helper\TimeBlockChoiceFactory',
         ),
     ),
-
     'view_manager' => array(
         'template_path_stack' => array(
             __DIR__ . '/../view',

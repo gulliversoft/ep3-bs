@@ -26,6 +26,7 @@ class MailService extends AbstractService
     {
         $fromAddress = $this->configManager->need('mail.address');
         $fromName = $this->optionManager->need('client.name.short') . ' ' . $this->optionManager->need('service.name.full');
+        $fromText = $this->t("team from") . ' ' . $fromName;
 
         $replyToAddress = $this->optionManager->need('client.contact.email');
         $replyToName = $this->optionManager->need('client.name.full');
@@ -34,9 +35,9 @@ class MailService extends AbstractService
         $toName = $recipient->need('alias');
 
         $text = sprintf("%s %s,\r\n\r\n%s\r\n\r\n%s,\r\n%s %s\r\n%s",
-            $this->t('Dear'), $toName, $text, $this->t('Sincerely'), $this->t("Your"), $fromName, $this->optionManager->need('service.website'));
+            $this->t('Dear'), $toName, $text, $this->t('Sincerely'), $this->t("Your"), $fromText, $this->optionManager->need('service.website'));
 
-        $this->baseMailService->sendPlain($fromAddress, $fromName, $replyToAddress, $replyToName, $toAddress, $toName, $subject, $text, $attachments);
+        $this->baseMailService->sendHtml($fromAddress, $fromName, $replyToAddress, $replyToName, $toAddress, $toName, $subject, $text, $attachments);
     }
 
 }

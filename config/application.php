@@ -1,4 +1,6 @@
 <?php
+namespace Application\Model;
+
 /**
  * Application configuration bootstrap
  */
@@ -34,6 +36,7 @@ return array(
         'Frontend',
         'Service',
         'Square',
+        'SquareControl',
         'User',
 
         /**

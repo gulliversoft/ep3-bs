@@ -1,0 +1,227 @@
+<wsdl:definitions xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="https://gulliversoft.com/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" targetNamespace="https://gulliversoft.com/">
+<wsdl:types>
+<s:schema elementFormDefault="qualified" targetNamespace="https://gulliversoft.com/">
+<s:element name="getQRCodesRequest">
+<s:complexType/>
+</s:element>
+<s:element name="getQRCodesRequestResponse">
+<s:complexType>
+<s:sequence>
+<s:element minOccurs="0" maxOccurs="1" name="getQRCodesRequestResult" type="tns:ArrayOfInt"/>
+</s:sequence>
+</s:complexType>
+</s:element>
+<s:complexType name="ArrayOfInt">
+<s:sequence>
+<s:element minOccurs="0" maxOccurs="unbounded" name="int" type="s:int"/>
+</s:sequence>
+</s:complexType>
+<s:element name="createQRCodeRequest">
+<s:complexType>
+<s:sequence>
+<s:element minOccurs="1" maxOccurs="1" name="bid" type="s:int"/>
+<s:element minOccurs="1" maxOccurs="1" name="timeFrom" type="s:dateTime"/>
+<s:element minOccurs="1" maxOccurs="1" name="timeTo" type="s:dateTime"/>
+</s:sequence>
+</s:complexType>
+</s:element>
+<s:element name="createQRCodeRequestResponse">
+<s:complexType>
+<s:sequence>
+<s:element minOccurs="1" maxOccurs="1" name="createQRCodeRequestResult" type="s:int"/>
+</s:sequence>
+</s:complexType>
+</s:element>
+<s:element name="downloadQRCode">
+<s:complexType>
+<s:sequence>
+<s:element minOccurs="1" maxOccurs="1" name="codeId" type="s:int"/>
+</s:sequence>
+</s:complexType>
+</s:element>
+<s:element name="downloadQRCodeResponse">
+<s:complexType>
+<s:sequence>
+<s:element minOccurs="0" maxOccurs="1" name="downloadQRCodeResult" type="s:string"/>
+</s:sequence>
+</s:complexType>
+</s:element>
+<s:element name="deactivateQRCodeRequest">
+<s:complexType>
+<s:sequence>
+<s:element minOccurs="1" maxOccurs="1" name="code" type="s:int"/>
+</s:sequence>
+</s:complexType>
+</s:element>
+<s:element name="deactivateQRCodeRequestResponse">
+<s:complexType/>
+</s:element>
+<s:element name="deleteQRCodeRequest">
+<s:complexType>
+<s:sequence>
+<s:element minOccurs="1" maxOccurs="1" name="code" type="s:int"/>
+</s:sequence>
+</s:complexType>
+</s:element>
+<s:element name="deleteQRCodeRequestResponse">
+<s:complexType/>
+</s:element>
+</s:schema>
+</wsdl:types>
+<wsdl:message name="getQRCodesRequestSoapIn">
+<wsdl:part name="parameters" element="tns:getQRCodesRequest"/>
+</wsdl:message>
+<wsdl:message name="getQRCodesRequestSoapOut">
+<wsdl:part name="parameters" element="tns:getQRCodesRequestResponse"/>
+</wsdl:message>
+<wsdl:message name="createQRCodeRequestSoapIn">
+<wsdl:part name="parameters" element="tns:createQRCodeRequest"/>
+</wsdl:message>
+<wsdl:message name="createQRCodeRequestSoapOut">
+<wsdl:part name="parameters" element="tns:createQRCodeRequestResponse"/>
+</wsdl:message>
+<wsdl:message name="downloadQRCodeSoapIn">
+<wsdl:part name="parameters" element="tns:downloadQRCode"/>
+</wsdl:message>
+<wsdl:message name="downloadQRCodeSoapOut">
+<wsdl:part name="parameters" element="tns:downloadQRCodeResponse"/>
+</wsdl:message>
+<wsdl:message name="deactivateQRCodeRequestSoapIn">
+<wsdl:part name="parameters" element="tns:deactivateQRCodeRequest"/>
+</wsdl:message>
+<wsdl:message name="deactivateQRCodeRequestSoapOut">
+<wsdl:part name="parameters" element="tns:deactivateQRCodeRequestResponse"/>
+</wsdl:message>
+<wsdl:message name="deleteQRCodeRequestSoapIn">
+<wsdl:part name="parameters" element="tns:deleteQRCodeRequest"/>
+</wsdl:message>
+<wsdl:message name="deleteQRCodeRequestSoapOut">
+<wsdl:part name="parameters" element="tns:deleteQRCodeRequestResponse"/>
+</wsdl:message>
+<wsdl:portType name="WebServiceQRCodesBS1Soap">
+<wsdl:operation name="getQRCodesRequest">
+<wsdl:input message="tns:getQRCodesRequestSoapIn"/>
+<wsdl:output message="tns:getQRCodesRequestSoapOut"/>
+</wsdl:operation>
+<wsdl:operation name="createQRCodeRequest">
+<wsdl:input message="tns:createQRCodeRequestSoapIn"/>
+<wsdl:output message="tns:createQRCodeRequestSoapOut"/>
+</wsdl:operation>
+<wsdl:operation name="downloadQRCode">
+<wsdl:input message="tns:downloadQRCodeSoapIn"/>
+<wsdl:output message="tns:downloadQRCodeSoapOut"/>
+</wsdl:operation>
+<wsdl:operation name="deactivateQRCodeRequest">
+<wsdl:input message="tns:deactivateQRCodeRequestSoapIn"/>
+<wsdl:output message="tns:deactivateQRCodeRequestSoapOut"/>
+</wsdl:operation>
+<wsdl:operation name="deleteQRCodeRequest">
+<wsdl:input message="tns:deleteQRCodeRequestSoapIn"/>
+<wsdl:output message="tns:deleteQRCodeRequestSoapOut"/>
+</wsdl:operation>
+</wsdl:portType>
+<wsdl:binding name="WebServiceQRCodesBS1Soap" type="tns:WebServiceQRCodesBS1Soap">
+<soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
+<wsdl:operation name="getQRCodesRequest">
+<soap:operation soapAction="https://gulliversoft.com/getQRCodesRequest" style="document"/>
+<wsdl:input>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="createQRCodeRequest">
+<soap:operation soapAction="https://gulliversoft.com/createQRCodeRequest" style="document"/>
+<wsdl:input>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="downloadQRCode">
+<soap:operation soapAction="https://gulliversoft.com/downloadQRCode" style="document"/>
+<wsdl:input>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="deactivateQRCodeRequest">
+<soap:operation soapAction="https://gulliversoft.com/deactivateQRCodeRequest" style="document"/>
+<wsdl:input>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="deleteQRCodeRequest">
+<soap:operation soapAction="https://gulliversoft.com/deleteQRCodeRequest" style="document"/>
+<wsdl:input>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+</wsdl:binding>
+<wsdl:binding name="WebServiceQRCodesBS1Soap12" type="tns:WebServiceQRCodesBS1Soap">
+<soap12:binding transport="http://schemas.xmlsoap.org/soap/http"/>
+<wsdl:operation name="getQRCodesRequest">
+<soap12:operation soapAction="https://gulliversoft.com/getQRCodesRequest" style="document"/>
+<wsdl:input>
+<soap12:body use="literal"/>
+</wsdl:input>
+<wsdl:output>
+<soap12:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="createQRCodeRequest">
+<soap12:operation soapAction="https://gulliversoft.com/createQRCodeRequest" style="document"/>
+<wsdl:input>
+<soap12:body use="literal"/>
+</wsdl:input>
+<wsdl:output>
+<soap12:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="downloadQRCode">
+<soap12:operation soapAction="https://gulliversoft.com/downloadQRCode" style="document"/>
+<wsdl:input>
+<soap12:body use="literal"/>
+</wsdl:input>
+<wsdl:output>
+<soap12:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="deactivateQRCodeRequest">
+<soap12:operation soapAction="https://gulliversoft.com/deactivateQRCodeRequest" style="document"/>
+<wsdl:input>
+<soap12:body use="literal"/>
+</wsdl:input>
+<wsdl:output>
+<soap12:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="deleteQRCodeRequest">
+<soap12:operation soapAction="https://gulliversoft.com/deleteQRCodeRequest" style="document"/>
+<wsdl:input>
+<soap12:body use="literal"/>
+</wsdl:input>
+<wsdl:output>
+<soap12:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+</wsdl:binding>
+<wsdl:service name="WebServiceQRCodesBS1">
+<wsdl:port name="WebServiceQRCodesBS1Soap" binding="tns:WebServiceQRCodesBS1Soap">
+<soap:address location="http://localhost:54282/WebServiceQRCodesBS1.asmx"/>
+</wsdl:port>
+<wsdl:port name="WebServiceQRCodesBS1Soap12" binding="tns:WebServiceQRCodesBS1Soap12">
+<soap12:address location="http://localhost:54282/WebServiceQRCodesBS1.asmx"/>
+</wsdl:port>
+</wsdl:service>
+</wsdl:definitions>

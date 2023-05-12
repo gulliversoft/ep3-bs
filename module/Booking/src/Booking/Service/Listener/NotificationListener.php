@@ -4,8 +4,11 @@ namespace Booking\Service\Listener;
 
 use Backend\Service\MailService as BackendMailService;
 use Base\Manager\OptionManager;
+use Base\Manager\ConfigManager;
 use Base\View\Helper\DateRange;
+use Base\View\Helper\PriceFormat;
 use Booking\Manager\ReservationManager;
+use Booking\Manager\Booking\BillManager;
 use Square\Manager\SquareManager;
 use User\Manager\UserManager;
 use User\Service\MailService as UserMailService;
@@ -19,21 +22,26 @@ class NotificationListener extends AbstractListenerAggregate
 {
 
     protected $optionManager;
+    protected $configManager;
     protected $reservationManager;
+    protected $bookingBillManager;
     protected $squareManager;
     protected $userManager;
     protected $userMailService;
 	protected $backendMailService;
     protected $dateFormatHelper;
     protected $dateRangeHelper;
+    protected $priceFormatHelper;
     protected $translator;
 
-    public function __construct(OptionManager $optionManager, ReservationManager $reservationManager, SquareManager $squareManager,
+    public function __construct(OptionManager $optionManager, ConfigManager $configManager, ReservationManager $reservationManager, BillManager $bookingBillManager, SquareManager $squareManager,
 	    UserManager $userManager, UserMailService $userMailService, BackendMailService $backendMailService,
-	    DateFormat $dateFormatHelper, DateRange $dateRangeHelper, TranslatorInterface $translator)
+	    DateFormat $dateFormatHelper, DateRange $dateRangeHelper, PriceFormat $priceFormatHelper, TranslatorInterface $translator)
     {
         $this->optionManager = $optionManager;
+        $this->configManager = $configManager;
         $this->reservationManager = $reservationManager;
+        $this->bookingBillManager = $bookingBillManager;
         $this->squareManager = $squareManager;
         $this->userManager = $userManager;
         $this->userMailService = $userMailService;
@@ -41,6 +49,7 @@ class NotificationListener extends AbstractListenerAggregate
 
         $this->dateFormatHelper = $dateFormatHelper;
         $this->dateRangeHelper = $dateRangeHelper;
+        $this->priceFormatHelper = $priceFormatHelper;
         $this->translator = $translator;
     }
 
@@ -53,12 +62,14 @@ class NotificationListener extends AbstractListenerAggregate
     public function onCreateSingle(Event $event)
     {
         $booking = $event->getTarget();
-        $reservation = current($booking->getExtra('reservations'));
+        $reservations = $this->reservationManager->getBy(['bid' => $booking->need('bid')], 'date ASC', 1);
+        $reservation = current($reservations);
         $square = $this->squareManager->get($booking->need('sid'));
         $user = $this->userManager->get($booking->need('uid'));
 
         $dateFormatHelper = $this->dateFormatHelper;
         $dateRangerHelper = $this->dateRangeHelper;
+        $priceFormatHelper = $this->priceFormatHelper;
 
 	    $reservationTimeStart = explode(':', $reservation->need('time_start'));
         $reservationTimeEnd = explode(':', $reservation->need('time_end'));
@@ -73,11 +84,25 @@ class NotificationListener extends AbstractListenerAggregate
             $this->optionManager->get('subject.square.type'),
             $dateFormatHelper($reservationStart, \IntlDateFormatter::MEDIUM, \IntlDateFormatter::SHORT));
 
-        $message = sprintf($this->t('we have reserved %s %s, %s for you. Thank you for your booking.'),
-            $this->optionManager->get('subject.square.type'),
-            $square->need('name'),
-            $dateRangerHelper($reservationStart, $reservationEnd));
-
+        if ($this->configManager->get('genQRCode') != null && $this->configManager->get('genQRCode') == true) { 
+            $qrCode = $booking->getMeta('qrCode');
+            $codeId =$booking->getMeta('codeId');
+            $message = sprintf($this->t('we have reserved %s "%s", %s for you (booking id: %s.%s). Thank you for your booking. In order to finish your reservation, you need to scan and proceed the payment with the QR code: %s . Please remember, The final booking is only valid after payment is fully completed.'),
+                $this->optionManager->get('subject.square.type'),
+                $square->need('name'),
+                $dateRangerHelper($reservationStart, $reservationEnd),
+                $booking->get('bid'),
+                $codeId,
+                $qrCode);
+        } else {
+            $message = sprintf($this->t('we have reserved %s "%s", %s for you (booking id: %s). Thank you for your booking.'),
+                $this->optionManager->get('subject.square.type'),
+                $square->need('name'),
+                $dateRangerHelper($reservationStart, $reservationEnd),
+                $booking->get('bid'));
+        }
+        
+        # player names
         $playerNames = $booking->getMeta('player-names');
 
         if ($playerNames) {
@@ -92,6 +117,42 @@ class NotificationListener extends AbstractListenerAggregate
                 }
             }
         }
+	    
+        # price notice
+        $message .= "\n\n" . $this->t('Bill'). ":\n";
+
+        $total = 0;
+        $bills = $this->bookingBillManager->getBy(array('bid' => $booking->get('bid')), 'bbid ASC');
+
+        foreach ($bills as $bill) {
+                $total += $bill->get('price');
+                $items = 'x';
+                $squareUnit = '';
+
+                if ($bill->get('quantity') == 1) {
+                    $squareUnit = $this->optionManager->get('subject.square.unit');
+                } else {
+                    $squareUnit = $this->optionManager->get('subject.square.unit.plural');
+                }
+ 
+                if ($bill->get('time')) {
+                    $items = $squareUnit;   
+                }    
+
+                $message .= "\n"; 
+                $message .= $bill->get('description') . " (" . $bill->get('quantity') . " " . $items . ")";
+                $message .= " -> ";
+                $message .= $priceFormatHelper($bill->get('price'), $bill->get('rate'), $bill->get('gross'));
+        }
+        $message .= "\n\n";
+        $message .= $this->t('Total');
+        $message .= " -> ";
+        $message .= $priceFormatHelper($total);    
+
+        $message .= "\n\n"; 
+
+        $message = $message . sprintf($this->t('Should you have any questions and commentaries, please contact us through Email - %s'),
+             $this->optionManager->get('client.contact.email'));
 
         if ($square->get('allow_notes') && $booking->getMeta('notes')) {
             $message .= "\n\nAnmerkungen:";
@@ -137,10 +198,11 @@ class NotificationListener extends AbstractListenerAggregate
         $subject = sprintf($this->t('Your %s-booking has been cancelled'),
             $this->optionManager->get('subject.square.type'));
 
-        $message = sprintf($this->t('we have just cancelled %s %s, %s for you.'),
+        $message = sprintf($this->t('we have just cancelled %s "%s", %s for you (booking id: %s).'),
             $this->optionManager->get('subject.square.type'),
             $square->need('name'),
-            $dateRangerHelper($reservationStart, $reservationEnd));
+            $dateRangerHelper($reservationStart, $reservationEnd),
+            $booking->get('bid'));
 
         if ($user->getMeta('notification.bookings', 'true') == 'true') {
             $this->userMailService->send($user, $subject, $message);

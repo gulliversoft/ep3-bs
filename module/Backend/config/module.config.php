@@ -146,6 +146,64 @@ return array(
                                     ),
                                 ),
                             ),
+                            'webhook' => array(
+                                'type' => 'Literal',
+                                'options' => array(
+                                    'route' => '/webhook',
+                                    'defaults' => array(
+                                        'action' => 'webhook',
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                    'squarecontrol' => array(
+                        'type' => 'Literal',
+                        'options' => array(
+                            'route' => '/squarecontrol',
+                            'defaults' => array(
+                                'controller' => 'Backend\Controller\SquareControl',
+                                'action' => 'index',
+                            ),
+                        ),
+                        'may_terminate' => true,
+                        'child_routes' => array(
+                            'removeinactiveqrcodes' => array(
+                                'type' => 'Literal',
+                                'options' => array(
+                                    'route' => '/removeinactiveqrcodes',
+                                    'defaults' => array(
+                                        'action' => 'removeinactiveqrcodes',
+                                    ),
+                                ),
+                            ),
+                            'removeinactivedoorcodes' => array(
+                                'type' => 'Literal',
+                                'options' => array(
+                                    'route' => '/removeinactivedoorcodes',
+                                    'defaults' => array(
+                                        'action' => 'removeinactivedoorcodes',
+                                    ),
+                                ),
+                            ),
+                            'deleteqrcode' => array(
+                                'type' => 'Segment',
+                                'options' => array(
+                                    'route' => '/deleteqrcode/:dcid',
+                                    'defaults' => array(
+                                        'action' => 'deleteqrcode',
+                                    ),
+                                ),
+                            ),
+                            'deletedoorcode' => array(
+                                'type' => 'Segment',
+                                'options' => array(
+                                    'route' => '/deletedoorcode/:dcid',
+                                    'defaults' => array(
+                                        'action' => 'deletedoorcode',
+                                    ),
+                                ),
+                            ),
                         ),
                     ),
                     'event' => array(
@@ -380,82 +438,88 @@ return array(
             ),
         ),
     ),
-
+    
     'controllers' => array(
         'invokables' => array(
             'Backend\Controller\Index' => 'Backend\Controller\IndexController',
             'Backend\Controller\User' => 'Backend\Controller\UserController',
             'Backend\Controller\Booking' => 'Backend\Controller\BookingController',
+            'Backend\Controller\SquareControl' => 'Backend\Controller\SquareControlController',
             'Backend\Controller\Event' => 'Backend\Controller\EventController',
             'Backend\Controller\Config' => 'Backend\Controller\ConfigController',
             'Backend\Controller\ConfigSquare' => 'Backend\Controller\ConfigSquareController',
         ),
     ),
-
+    
     'controller_plugins' => array(
         'invokables' => array(
             'BackendBookingDetermineFilters' => 'Backend\Controller\Plugin\Booking\DetermineFilters',
-
+            
             'BackendUserDetermineFilters' => 'Backend\Controller\Plugin\User\DetermineFilters',
         ),
-
+        
         'factories' => array(
             'BackendBookingCreate' => 'Backend\Controller\Plugin\Booking\CreateFactory',
             'BackendBookingDetermineParams' => 'Backend\Controller\Plugin\Booking\DetermineParamsFactory',
             'BackendBookingUpdate' => 'Backend\Controller\Plugin\Booking\UpdateFactory',
         ),
     ),
-
+    
     'service_manager' => array(
         'factories' => array(
             'Backend\Service\MailService' => 'Backend\Service\MailServiceFactory',
         ),
     ),
-
+    
     'form_elements' => array(
         'factories' => array(
             'Backend\Form\Booking\EditForm' => 'Backend\Form\Booking\EditFormFactory',
-
+            
             'Backend\Form\Event\EditForm' => 'Backend\Form\Event\EditFormFactory',
-
+            
             'Backend\Form\ConfigSquare\EditProductForm' => 'Backend\Form\ConfigSquare\EditProductFormFactory',
-
+            
             'Backend\Form\User\EditForm' => 'Backend\Form\User\EditFormFactory',
         ),
     ),
-
+    
     'view_helpers' => array(
         'invokables' => array(
             'BackendBookingsFormat' => 'Backend\View\Helper\Booking\BookingsFormat',
-
+            
             'BackendEventsFormat' => 'Backend\View\Helper\Event\EventsFormat',
-
+            
             'BackendSquareProductsFormat' => 'Backend\View\Helper\Square\ProductsFormat',
-
+            
             'BackendSquareFormat' => 'Backend\View\Helper\Square\SquareFormat',
             'BackendSquaresFormat' => 'Backend\View\Helper\Square\SquaresFormat',
-
+            
+            'BackendDoorCodeFormat' => 'Backend\View\Helper\SquareControl\DoorCodeFormat',
+            'BackendDoorCodesFormat' => 'Backend\View\Helper\SquareControl\DoorCodesFormat',
+            
+            'BackendQRCodeFormat' => 'Backend\View\Helper\SquareControl\QRCodeFormat',
+            
             'BackendUserFilterHelp' => 'Backend\View\Helper\User\FilterHelp',
             'BackendUserFormat' => 'Backend\View\Helper\User\UserFormat',
             'BackendUsersFormat' => 'Backend\View\Helper\User\UsersFormat',
-
+            
             'BackendInfo' => 'Backend\View\Helper\Info',
         ),
-
+        
         'factories' => array(
             'BackendBookingFormat' => 'Backend\View\Helper\Booking\BookingFormatFactory',
-
+            
             'BackendEventFormat' => 'Backend\View\Helper\Event\EventFormatFactory',
-
+            
             'BackendSquareProductFormat' => 'Backend\View\Helper\Square\ProductFormatFactory',
         ),
     ),
-
+    
     'view_manager' => array(
         'template_path_stack' => array(
             __DIR__ . '/../view',
         ),
-
+        
         'strategies' => array(
             'ViewJsonStrategy',
         ),

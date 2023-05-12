@@ -44,4 +44,15 @@ return array(
         // the following locale will be used as the default "fallback":
         'locale' => 'de-DE',
     ),
+    // enable /disable qrcode payment system
+    'genQRCode' => false,
+    // add a buffer to the booked time period for validity
+    'qrCodeTimeBuffer' => '15 minutes',
+    // enable/disable specific payment providers 
+    'paypal' => false,
+
+    // classic behaviour of ep3-bs with booking on bill 
+    'billing' => true,
+    // select which payment provider should be activated as default 
+    'payment_default' => 'paypal',
 );

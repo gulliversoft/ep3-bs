@@ -5,6 +5,7 @@ namespace Backend\Controller;
 use Booking\Entity\Booking;
 use Booking\Table\BookingTable;
 use Booking\Table\ReservationTable;
+use DateTime;
 use Zend\Db\Adapter\Adapter;
 use Zend\Mvc\Controller\AbstractActionController;
 
@@ -104,6 +105,10 @@ class BookingController extends AbstractActionController
 
         $reservation = $booking = null;
 
+        $editMode = null;
+        print('BookingController.php: Line 109');
+        error_log('editAction Line 110');
+
         if (! ($this->getRequest()->isPost() || $this->params()->fromQuery('force') == 'new')) {
             switch (count($params['reservations'])) {
                 case 0:
@@ -112,7 +117,7 @@ class BookingController extends AbstractActionController
                     $reservation = current($params['reservations']);
                     $booking = $reservation->getExtra('booking');
 
-                    if ($booking->get('status') == 'subscription') {
+                    if ($booking->get('status') == 'subscription' && $sessionUser->can(['calendar.create-subscription-bookings', 'calendar.cancel-subscription-bookings', 'calendar.delete-subscription-bookings'])) {
                         if (! $params['editMode']) {
                             return $this->forward()->dispatch('Backend\Controller\Booking', ['action' => 'editMode', 'params' => $params]);
                         }
@@ -125,8 +130,12 @@ class BookingController extends AbstractActionController
 
         $serviceManager = @$this->getServiceLocator();
         $formElementManager = $serviceManager->get('FormElementManager');
-
+        $squareManager = $serviceManager->get('Square\Manager\SquareManager');
+        print('BookingController.php: Line 134');
+        $squareControlService = $serviceManager->get('SquareControl\Service\SquareControlService');
+        
         $editForm = $formElementManager->get('Backend\Form\Booking\EditForm');
+
 
         if ($this->getRequest()->isPost()) {
             $editForm->setData($this->params()->fromPost());
@@ -143,6 +152,11 @@ class BookingController extends AbstractActionController
                     $savedBooking = $this->backendBookingUpdate($d['bf-rid'], $d['bf-user'], $d['bf-time-start'], $d['bf-time-end'], $d['bf-date-start'],
                         $d['bf-sid'], $d['bf-status-billing'], $d['bf-quantity'], $d['bf-notes'], $params['editMode']);
 
+                    $bid = $savedBooking->get('bid');
+                    $square = $squareManager->get($booking->get('sid'));
+                    if ($this->config('genQRCode') != null && $this->config('genQRCode') == true && $square->getMeta('square_control') == true) {
+                        $squareControlService->updateQRCode($bid);
+                    }
                 } else {
 
                     /* Create booking/reservation */
@@ -231,6 +245,16 @@ class BookingController extends AbstractActionController
             $editForm->get('bf-quantity')->setOption('notes', $playerNameNotes);
         }
 
+        if (! $sessionUser->can(['calendar.create-subscription-bookings'])) {
+            return $this->ajaxViewModel(array_merge($params, array(
+            'editMode' => 'no_subscr',
+            'editForm' => $editForm,
+            'booking' => $booking,
+            'reservation' => $reservation,
+            'sessionUser' => $sessionUser,
+            )));
+        }
+
         return $this->ajaxViewModel(array_merge($params, array(
             'editForm' => $editForm,
             'booking' => $booking,
@@ -261,10 +285,13 @@ class BookingController extends AbstractActionController
         $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
         $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
         $formElementManager = $serviceManager->get('FormElementManager');
+        $squareManager = $serviceManager->get('Square\Manager\SquareManager');
+        $squareControlService = $serviceManager->get('SquareControl\Service\SquareControlService');
 
         $bid = $this->params()->fromRoute('bid');
 
         $booking = $bookingManager->get($bid);
+        $square = $squareManager->get($booking->get('sid'));
 
         if ($booking->get('status') != 'subscription') {
             throw new \RuntimeException('Time and date range can only be edited on subscription bookings');
@@ -295,6 +322,9 @@ class BookingController extends AbstractActionController
                         $booking->setMeta('time_end', $data['bf-time-end']);
 
                         $bookingManager->save($booking);
+                        if ($this->config('genQRCode') != null && $this->config('genQRCode') == true && $square->getMeta('square_control') == true) {
+                            $squareControlService->updateQRCode($bid);
+                        }
                     }
 
                     $this->flashMessenger()->addSuccessMessage('Booking has been saved');
@@ -325,6 +355,9 @@ class BookingController extends AbstractActionController
                         $booking->setMeta('repeat', $repeat);
 
                         $bookingManager->save($booking);
+                        if ($this->config('genQRCode') != null && $this->config('genQRCode') == true && $square->getMeta('square_control') == true) {
+                            $squareControlService->updateQRCode($bid);
+                        }
                     }
 
                     $this->flashMessenger()->addSuccessMessage('Booking has been saved');
@@ -363,12 +396,15 @@ class BookingController extends AbstractActionController
         $serviceManager = @$this->getServiceLocator();
         $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
         $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
+        $squareManager = $serviceManager->get('Square\Manager\SquareManager');
+        $squareControlService = $serviceManager->get('SquareControl\Service\SquareControlService');
 
         $rid = $this->params()->fromRoute('rid');
         $editMode = $this->params()->fromQuery('edit-mode');
 
         $reservation = $reservationManager->get($rid);
         $booking = $bookingManager->get($reservation->get('bid'));
+        $square = $squareManager->get($booking->get('sid'));
 
         switch ($booking->get('status')) {
             case 'single':
@@ -396,6 +432,9 @@ class BookingController extends AbstractActionController
                     $booking->setMeta('cancellor', $sessionUser->get('alias'));
                     $booking->setMeta('cancelled', date('Y-m-d H:i:s'));
                     $bookingManager->save($booking);
+                    if ($this->config('genQRCode') != null && $this->config('genQRCode') == true && $square->getMeta('square_control') == true) {
+                        $squareControlService->deactivateQRCode($bid);
+                    }
 
                     $this->flashMessenger()->addSuccessMessage('Booking has been cancelled');
                 } else {
@@ -476,7 +515,7 @@ class BookingController extends AbstractActionController
                     $pricing = $squarePricingManager->getFinalPricingInRange($dateTimeStart, $dateTimeEnd, $square, $booking->get('quantity'));
 
                     if ($pricing) {
-
+                        error_log("BoookingController Line 518");
                         $description = sprintf('%s %s, %s',
                             $squareType, $squareName,
                             $dateRangeHelper($dateTimeStart, $dateTimeEnd));

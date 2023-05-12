@@ -348,6 +348,7 @@ class SquarePricingManager extends AbstractManager
         if ($dateTimeStart > $dateTimeEnd) {
             throw new InvalidArgumentException('The passed time is invalid');
         }
+        error_log("SquarePricingManager Line 351");
 
         while ($dateTimeStart < $dateTimeEnd) {
             $rule = $this->getPricingRule($dateTimeStart, $square);
@@ -503,7 +504,7 @@ class SquarePricingManager extends AbstractManager
             $walkingDate->modify('+1 day');
             $walkingDateIndex++;
         }
-
+        error_log("SquarePricingManager Line 507");
         return $finalPricingInRange;
     }
 
