@@ -1,3 +1,11 @@
+# Bookingsystem1
+
+
+The QR code payment extension implemented in this fork is explained in the video: https://youtu.be/7-IqSIubDHQ 
+and on the webpage www.gulliversoft.com
+
+Feel free to ask me how to integrate this solution in your club.
+
 # ep-3 Bookingsystem
 
 The ep-3 Bookingsystem is an open source (MIT licensed) web application to enable users to check and book free places of
