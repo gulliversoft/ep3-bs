@@ -1,4 +1,4 @@
-![BS1 in action](https://github.com/gulliversoft/ep3-bs/ep3181.gif)
+![BS1 in action](https://github.com/gulliversoft/ep3-bs/blob/master/ep3181.gif)
 
 # Bookingsystem1
 
